@@ -1,10 +1,13 @@
 import numpy as np
 from matplotlib import pyplot as plt
+import pickle
 
-data = np.loadtxt('./data/data_collection.txt')
-fft_data = np.fft.fft(data)
+data = open('./data/data_orignal_storage.dat', 'rb')
+d = pickle.load(data)
+data.close()
+fft_data = np.fft.fft(d)
 db = 20* np.log(fft_data)
-xaxis = np.linspace(1, 100, len(data))
-#plt.plot(xaxis, db)
-plt.plot(data)
+xaxis = np.linspace(1, 100, len(d))
+plt.plot(xaxis, db)
+#plt.plot(data)
 plt.show()

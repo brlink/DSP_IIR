@@ -30,21 +30,22 @@ class QtDisplay:
         self.data_orign = []
         # store data processed
         self.data_processed = []
+        # self.data_display = []
 
         # design filter:
-        ## highpass above 40hz
-        self.filter_highpass = IIRFilter.IIRFilter(signal.cheby2(8, 40, 40 / sampling_rate * 2, 
+        ## highpass above 0.5hz
+        self.filter_highpass = IIRFilter.IIRFilter(signal.cheby2(8, 40, 0.5 / sampling_rate * 2, 
                                         btype='highpass', 
                                         output='sos'))
 
-        ## lowpass below 10hz
-        self.filter_lowpass = IIRFilter.IIRFilter(signal.cheby2(4, 60, 10 / sampling_rate *2, 
+        ## lowpass below 40hz
+        self.filter_lowpass = IIRFilter.IIRFilter(signal.cheby2(4, 60, 40 / sampling_rate *2, 
                                         btype='lowpass', 
                                         output='sos'))
 
         # add widgets in qt window
         self.plt = pg.PlotWidget(background='w')
-        self.plt.setYRange(0, 5)
+        self.plt.setYRange(0, 1)
         self.plt.setXRange(0, 500)
         self.plt.setMouseEnabled(x=False, y=False)
         self.curve = self.plt.plot()
@@ -52,12 +53,12 @@ class QtDisplay:
         # add Radio buttons
         self.select_box = GroupBox("filters")
         self.select_boxlayout = QtGui.QGridLayout()
-        self.rb_lfilter10 = QCheckBox("Lowpass 10Hz")
-        self.rb_hfilter40 = QCheckBox("Hipass 40Hz")
-        self.rb_lfilter10.setChecked(True)
+        # self.rb_lfilter10 = QCheckBox("Lowpass 10Hz")
+        self.rb_hfilter40 = QCheckBox("Lowpass 40Hz")
+        # self.rb_lfilter10.setChecked(True)
         self.rb_hfilter40.setChecked(True)
-        self.select_boxlayout.addWidget(self.rb_lfilter10, 0, 0)
-        self.select_boxlayout.addWidget(self.rb_hfilter40, 0, 1)
+        # self.select_boxlayout.addWidget(self.rb_lfilter10, 0, 0)
+        self.select_boxlayout.addWidget(self.rb_hfilter40, 0, 0)
         self.select_box.setLayout(self.select_boxlayout)
         
         # add output text
@@ -87,15 +88,16 @@ class QtDisplay:
     def update(self):
         self.data_orign = self.data_orign[-500 : ]
         self.data_processed = self.data_processed[-500 : ]
+        # self.data_display = 20* np.log(self.data_processed)
     
         if self.data_processed:
-            self.plt.setYRange(0, 5)
+            self.plt.setYRange(0, 1)
             self.curve.setData(np.hstack(self.data_processed))
         
-        if not (self.rb_lfilter10.isChecked() and self.rb_hfilter40.isChecked()):
+        if not self.rb_hfilter40.isChecked():
             self.label.setText("filtering not completely")
         else:
-            self.label.setText("the filter periods are [{}Hz,{}Hz] and [{}Hz,{}Hz]".format(0, 10, 40, 50))
+            self.label.setText("the lowpass filter {}Hz start".format(40))
     
 
     def addData(self, raw_data):
@@ -104,15 +106,15 @@ class QtDisplay:
         handled_data = raw_data
         
         # enable highpass
-        if self.rb_lfilter10.isChecked():
-            handled_data = self.filter_highpass.filter(handled_data)
+        # if self.rb_lfilter10.isChecked():
+        #     handled_data = self.filter_highpass.filter(handled_data)
         if self.rb_hfilter40.isChecked():
         # enable lowpass
             handled_data = self.filter_lowpass.filter(handled_data)
         
-        if self.rb_lfilter10.isChecked() and self.rb_hfilter40.isChecked():
-            # pass
-            pass
+        # if self.rb_lfilter10.isChecked() and self.rb_hfilter40.isChecked():
+        #     # pass
+        #     pass
         
         
         # impelement
