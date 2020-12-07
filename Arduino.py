@@ -2,7 +2,6 @@ from pyfirmata2 import Arduino
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-import threading
 
 # Realtime oscilloscope at a sampling rate of 100Hz
 # It displays analog channel 0.
@@ -71,7 +70,6 @@ board = Arduino(PORT)
 # Set the sampling rate in the Arduino
 board.samplingOn(1000 / samplingRate)
 
-threading.Timer(10, board.exit())
 # Register the callback which adds the data to the animated plot
 board.analog[0].register_callback(callBack)
 
@@ -82,7 +80,7 @@ board.analog[0].enable_reporting()
 plt.show()
 
 # needs to be called to close the serial port
-
+board.exit()
 
 
 print("finished")

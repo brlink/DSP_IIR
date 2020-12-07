@@ -11,8 +11,7 @@ from qtdisplay import *
 # You can plot multiple chnannels just by instantiating
 # more RealtimePlotWindow instances and registering
 # callbacks from the other channels.
-# Copyright (c) 2018-2020, Bernd Porr <mail@berndporr.me.uk>
-# see LICENSE file.
+# Refer to Bernd Porr <mail@berndporr.me.uk>
 
 PORT = Arduino.AUTODETECT
 # PORT = '/dev/ttyUSB0'
@@ -20,14 +19,13 @@ PORT = Arduino.AUTODETECT
 # sampling rate: 100Hz
 sampling_rate = 100
 
-# Create an instance of an animated scrolling window
-# To plot more channels just create more instances and add callback handlers below
+# Create an qt window
 qt_display = QtDisplay("Magnetic Force Sensor IIR Filter", sampling_rate)
 
 
 # called for every new sample which has arrived from the Arduino
 def callBack(data):
-    # send the sample to the plotwindow
+    # send the sample to the qtwindow
     # add any filtering here:
     # data = self.myfilter.dofilter(data)
     qt_display.addData(data)
@@ -52,7 +50,7 @@ display_window = QtGui.QApplication(sys.argv)
 display_window.exec_()
 
 #save data episode for better design filter
-output_file = open("./data/data_orignal_storage.dat", 'wb')
+output_file = open("./data/data_original_storage.dat", 'wb')
 pickle.dump(qt_display.data_orign, output_file)
 output_file.close()
 

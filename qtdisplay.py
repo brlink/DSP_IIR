@@ -1,6 +1,9 @@
 import numpy as np
 from pyqtgraph.widgets.GroupBox import GroupBox
+from pyqtgraph.functions import mkPen, pseudoScatter
+
 import scipy.signal as signal
+import time
 
 #import QT
 import pyqtgraph as pg
@@ -10,6 +13,37 @@ from PyQt5.QtWidgets import QLabel, QLineEdit, QCheckBox
 
 #import filters
 import IIRFilter
+
+class Detector:
+    """a class to detect whether a computer is closed or opened"""
+    def __init__(self):
+        self.data_pre = 0 # data buffer of the previous one
+        self.drop = 0 # the total light drop 
+    
+    def detect(self, new_data):
+        # drop
+        self.drop = (self.data_pre - new_data)
+        
+        
+        if np.abs(self.drop) < 0.3:
+            return 0
+        else:
+            # drop < 0, means open
+            if self.drop < 0:
+                self.update(new_data)
+                return 1
+            else: # drop > 0, means close
+                self.update(new_data)
+                return -1
+
+    def clean(self):
+        #clean all the data of this detector
+        self.drop = 0
+        self.data_pre = 0
+
+    def update(self, new_data):
+        #update previous data
+        self.data_pre = new_data
 
 
 class QtDisplay:
@@ -32,6 +66,9 @@ class QtDisplay:
         self.data_processed = []
         # self.data_display = []
 
+        # initial detector
+        self.detector = Detector()
+
         # design filter:
         ## highpass above 0.5hz
         self.filter_highpass = IIRFilter.IIRFilter(signal.cheby2(8, 40, 0.5 / sampling_rate * 2, 
@@ -39,16 +76,22 @@ class QtDisplay:
                                         output='sos'))
 
         ## lowpass below 40hz
-        self.filter_lowpass = IIRFilter.IIRFilter(signal.cheby2(4, 60, 40 / sampling_rate *2, 
+        self.filter_lowpass = IIRFilter.IIRFilter(signal.cheby2(4, 60, 35 / sampling_rate *2, 
                                         btype='lowpass', 
                                         output='sos'))
 
         # add widgets in qt window
-        self.plt = pg.PlotWidget(background='w')
-        self.plt.setYRange(0, 1)
+        self.plt = pg.PlotWidget(background='k')
+        self.plt.setYRange(0, 0.6)
         self.plt.setXRange(0, 500)
         self.plt.setMouseEnabled(x=False, y=False)
-        self.curve = self.plt.plot()
+        pen_line = mkPen(width=5, color='EE7942')
+        pen_axis = mkPen(width=3, color='FFFFFF')
+        self.plt.getAxis('bottom').setPen(pen_axis)
+        self.plt.getAxis('bottom').setTextPen(pen_axis)
+        self.plt.getAxis('left').setPen(pen_axis)
+        self.plt.getAxis('left').setTextPen(pen_axis)
+        self.curve = self.plt.plot(pen=pen_line)
 
         # add Radio buttons
         self.select_box = GroupBox("filters")
@@ -91,7 +134,7 @@ class QtDisplay:
         # self.data_display = 20* np.log(self.data_processed)
     
         if self.data_processed:
-            self.plt.setYRange(0, 1)
+            self.plt.setYRange(0, 0.6)
             self.curve.setData(np.hstack(self.data_processed))
         
         if not self.rb_hfilter40.isChecked():
@@ -111,6 +154,27 @@ class QtDisplay:
         if self.rb_hfilter40.isChecked():
         # enable lowpass
             handled_data = self.filter_lowpass.filter(handled_data)
+
+            stat = self.detector.detect(handled_data)
+
+            seconds = time.time()
+            now = time.ctime(seconds)
+
+            if stat == 0:
+                pass
+            if stat == -1:
+                #add data to log file
+                log_file = open("detector.log", 'a')
+                log_file.write("Laptop close at {}\n".format(now))
+                log_file.close()
+            if stat == 1:
+                #add data to log file
+                log_file = open("detector.log", 'a')
+                log_file.write("Laptop open at {}\n".format(now))
+                log_file.close()
+        else:
+            self.detector.clean()
+
         
         # if self.rb_lfilter10.isChecked() and self.rb_hfilter40.isChecked():
         #     # pass
