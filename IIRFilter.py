@@ -5,6 +5,8 @@ from IIR2Filter import IIR2Filter
 import matplotlib.pyplot as plt
 
 # define IIRFilter
+
+
 class IIRFilter:
     def __init__(self, sos: np.ndarray):
         self.sos_filters = []
@@ -13,8 +15,8 @@ class IIRFilter:
             ba = sos[index]
             filter_tmp = IIR2Filter(ba[0], ba[1], ba[2], ba[3], ba[4], ba[5])
             self.sos_filters.append(filter_tmp)
-    
-    def filter(self,x):  #x as input  acc_input=accumulator input
+
+    def filter(self, x):  # x as input  acc_input=accumulator input
         output = x
         for filter in self.sos_filters:
             output = filter.filter(output)
@@ -34,7 +36,7 @@ class IIRFilter:
 #     filter = IIRFilter(sos)
 #     for yi in y:
 #         result = np.append(result, filter.filter(yi))
-    
+
 #     plt.plot(y, label="raw data")
 #     plt.plot(result, label = "filtered")
 #     plt.legend()

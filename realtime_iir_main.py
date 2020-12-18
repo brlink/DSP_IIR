@@ -2,7 +2,7 @@ import sys
 
 from pyfirmata2 import Arduino
 from pyqtgraph.Qt import QtGui
-import pickle
+# import pickle
 
 from qtdisplay import *
 
@@ -22,13 +22,22 @@ sampling_rate = 100
 # Create an qt window
 qt_display = QtDisplay("Magnetic Force Sensor IIR Filter", sampling_rate)
 
-
+# store the previous time
+time_pre = 0
 # called for every new sample which has arrived from the Arduino
 def callBack(data):
+    global time_pre
     # send the sample to the qtwindow
     # add any filtering here:
     # data = self.myfilter.dofilter(data)
-    qt_display.addData(data)
+    now = time.time()
+    if (now- time_pre) > 0.010:
+        qt_display.addData(data)
+
+
+
+time_pre = time.time() #initiate time
+#sleep 5 seconds to calculate sample rate
 
 # Get the Ardunio board.
 board = Arduino(PORT)
@@ -49,10 +58,15 @@ print("sampling rate: ", sampling_rate, "Hz")
 display_window = QtGui.QApplication(sys.argv)
 display_window.exec_()
 
-#save data episode for better design filter
-output_file = open("./data/data_original_storage.dat", 'wb')
-pickle.dump(qt_display.data_orign, output_file)
-output_file.close()
+# #save data episode for better design filter
+# output_file = open("./data/data_original_storage.dat", 'wb')
+# pickle.dump(qt_display.data_orign, output_file)
+# output_file.close()
+
+# #save data episode for better design filter
+# output_file = open("./data/data_processed_storage.dat", 'wb')
+# pickle.dump(qt_display.data_processed, output_file)
+# output_file.close()
 
 # needs to be called to close the serial port
 board.exit()

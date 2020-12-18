@@ -15,6 +15,8 @@ PORT = Arduino.AUTODETECT
 # PORT = '/dev/ttyUSB0'
 
 # Creates a scrolling data display
+
+
 class RealtimePlotWindow:
 
     def __init__(self):
@@ -58,11 +60,14 @@ realtimePlotWindow = RealtimePlotWindow()
 samplingRate = 100
 
 # called for every new sample which has arrived from the Arduino
+
+
 def callBack(data):
     # send the sample to the plotwindow
     # add any filtering here:
     # data = self.myfilter.dofilter(data)
     realtimePlotWindow.addData(data)
+
 
 # Get the Ardunio board.
 board = Arduino(PORT)
@@ -84,5 +89,3 @@ board.exit()
 
 
 print("finished")
-
-
